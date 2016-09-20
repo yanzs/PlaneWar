@@ -8,13 +8,13 @@ import java.util.Random;
 public class Map {
 
     public static int getBomb() {//添加炸弹补给
-        Random r= new Random();
-        return r.nextInt(GameView.screenWidth-GameView.bmp_Bomb.getWidth());
+        Random r = new Random();
+        return r.nextInt(GameView.screenWidth - GameView.bmp_Bomb.getWidth());
     }
 
     public static int getBullet() {//添加子弹补给
-        Random r= new Random();
-        return r.nextInt(GameView.screenWidth-GameView.bmp_changeBullet.getWidth());
+        Random r = new Random();
+        return r.nextInt(GameView.screenWidth - GameView.bmp_changeBullet.getWidth());
     }
 
 
@@ -36,10 +36,13 @@ public class Map {
         }
 
         if (type == ConstantUtil.ENEMY_TYPE1) {//如果类型为1，在当前速度与最大速度取一个值
-            velocity = ra1.nextInt(ConstantUtil.ENEMY_VELOCITY_MAX - ConstantUtil.ENEMY_VELOCITY) + ConstantUtil.ENEMY_VELOCITY;
-        } else {//如果类型为1，取当前速度
+            velocity = ra1.nextInt(ConstantUtil.ENEMY_VELOCITY_MAX1 - ConstantUtil.ENEMY_VELOCITY) + ConstantUtil.ENEMY_VELOCITY;
+        } else if (type == ConstantUtil.ENEMY_TYPE2) {//如果类型为2，在当前速度与最大速度取一个值
+            velocity = ra1.nextInt(ConstantUtil.ENEMY_VELOCITY_MAX2 - ConstantUtil.ENEMY_VELOCITY) + ConstantUtil.ENEMY_VELOCITY;
+        } else {//如果类型为3，取当前速度
             velocity = ConstantUtil.ENEMY_VELOCITY;
         }
+
         if (type == ConstantUtil.ENEMY_TYPE1) {
             x = ra1.nextInt(GameView.screenWidth - GameView.bmps_enemyPlane1[0].getWidth());
         } else if (type == ConstantUtil.ENEMY_TYPE2) {

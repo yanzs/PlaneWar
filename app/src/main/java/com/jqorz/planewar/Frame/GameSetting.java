@@ -24,7 +24,7 @@ public class GameSetting extends Activity implements CompoundButton.OnCheckedCha
 
     private void setSwitch() {
         sp = getSharedPreferences("Data", MODE_PRIVATE);
-        Boolean b1 = sp.getBoolean("swt_Music", false);
+        Boolean b1 = sp.getBoolean("swt_Music", true);
         swt_Music.setChecked(b1);
         Boolean b2 = sp.getBoolean("swt_Sound", true);
         swt_Sound.setChecked(b2);

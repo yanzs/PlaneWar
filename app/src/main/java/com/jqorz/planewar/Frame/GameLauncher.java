@@ -5,12 +5,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.jqorz.planewar.R;
 
-public class GameLauncher extends Activity implements View.OnClickListener {
+public class GameLauncher extends Activity implements View.OnClickListener,View.OnLongClickListener {
     private ImageButton imgBtn_startGame, imgBtn_exitGame, imgBtn_about, imgBtn_setting;
-
+private ImageView iv_icon;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,8 +19,6 @@ public class GameLauncher extends Activity implements View.OnClickListener {
         setContentView(R.layout.game_launcher);
         initView();
         initEvent();
-
-
     }
 
     private void initView() {
@@ -27,7 +26,7 @@ public class GameLauncher extends Activity implements View.OnClickListener {
         imgBtn_exitGame = (ImageButton) findViewById(R.id.imgBtn_exitGame);
         imgBtn_about = (ImageButton) findViewById(R.id.imgBtn_about);
         imgBtn_setting = (ImageButton) findViewById(R.id.imgBtn_Setting);
-
+        iv_icon= (ImageView) findViewById(R.id.iv_icon);
     }
 
     private void initEvent() {
@@ -35,6 +34,7 @@ public class GameLauncher extends Activity implements View.OnClickListener {
         imgBtn_exitGame.setOnClickListener(this);
         imgBtn_about.setOnClickListener(this);
         imgBtn_setting.setOnClickListener(this);
+        iv_icon.setOnLongClickListener(this);
     }
 
 
@@ -61,4 +61,12 @@ public class GameLauncher extends Activity implements View.OnClickListener {
     }
 
 
+    @Override
+    public boolean onLongClick(View view) {
+        if (view.getId()==R.id.iv_icon){
+            Intent intent = new Intent(this, GameCheat.class);
+            this.startActivity(intent);
+        }
+        return false;
+    }
 }

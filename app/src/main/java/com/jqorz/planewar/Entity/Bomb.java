@@ -7,7 +7,7 @@ import android.graphics.Paint;
 import com.jqorz.planewar.Utils.ConstantUtil;
 
 /**
- * 该类为可以吃到的血的类
+ * 该类为炸弹补给类
  */
 public class Bomb {
     private int x;//炸弹的坐标
@@ -21,6 +21,7 @@ public class Bomb {
         y = -bitmap.getHeight();
     }
 
+    //重置坐标
     public void reset() {
         this.setX(Map.getBomb());
         this.y = -bitmap.getHeight();
@@ -59,7 +60,6 @@ public class Bomb {
     }
 
     public void move() {
-        int velocity = ConstantUtil.Bomb_Velocity;
-        this.y = this.y + velocity;
+        this.y = this.y + ConstantUtil.Bomb_Velocity;
     }
 }                                                                                                 

@@ -21,9 +21,10 @@ public class ChangeBullet {
         y = -bitmap.getHeight();
     }
 
+    //重置坐标
     public void reset() {
         this.setX(Map.getBullet());
-        this.y=-bitmap.getHeight();
+        this.y = -bitmap.getHeight();
     }
 
     public int getX() {
@@ -31,9 +32,7 @@ public class ChangeBullet {
     }
 
     public void setX(int x) {
-
         this.x = x;
-
     }
 
     public int getY() {
@@ -51,8 +50,6 @@ public class ChangeBullet {
     public Bitmap getBitmap() {
         return bitmap;
     }
-
-
 
 
     public void draw(Canvas canvas) {

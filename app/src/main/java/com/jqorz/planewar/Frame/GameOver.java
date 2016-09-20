@@ -10,6 +10,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.jqorz.planewar.R;
+import com.jqorz.planewar.Utils.ConstantUtil;
 
 public class GameOver extends Activity implements View.OnClickListener {
 
@@ -26,21 +27,34 @@ public class GameOver extends Activity implements View.OnClickListener {
         sp = getSharedPreferences("Data", MODE_PRIVATE);
         setTypeface();
         getBundle();
+        ConstantUtil.CHEAT_CURRENT_STATE = 0;//还原作弊状态
     }
 
     private void getBundle() {
         Intent intent = getIntent();
         int thisScore = intent.getIntExtra("Score", 0);
+        boolean isCheated = ConstantUtil.CHEAT_CURRENT_STATE != 0;
+
         int maxScore = sp.getInt("MaxScore", 0);
 
         if (thisScore > maxScore) {
             maxScore = thisScore;
             SharedPreferences.Editor edit = sp.edit();
             edit.putInt("MaxScore", maxScore);
+            edit.putBoolean("MaxScoreCheated", isCheated);//如果作弊得到最高分，保存作弊记录至本地
             edit.apply();
         }
+
+        boolean maxScoreCheated = sp.getBoolean("MaxScoreCheated", false);
+
         String showText1 = "" + thisScore;
         String showText2 = "" + maxScore;
+        if (isCheated) {//如果此次作弊，用"."标识出来
+            showText1 = showText1 + ".";
+        }
+        if (maxScoreCheated) {//如果最高分作弊，用"."标识出来
+            showText2 = showText2 + ".";
+        }
         tv_thisScore.setText(showText1);
         tv_MaxScore.setText(showText2);
     }

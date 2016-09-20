@@ -43,7 +43,7 @@ public class TutorialThread extends Thread {//刷帧线程
                         if (gameView.bg2y > GameView.screenHeight) {
                             gameView.bg2y = gameView.bg1y - GameView.screenHeight;
                         }
-                        gameView.mDraw(c);//绘制
+                        gameView.mDraw(c);
                     }
                 }
             } finally {

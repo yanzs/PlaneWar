@@ -7,6 +7,9 @@ import android.os.Message;
 
 import com.jqorz.planewar.Utils.ConstantUtil;
 
+/**
+ * 该类为敌机类
+ */
 public class EnemyPlane {
 
     private int x;
@@ -21,7 +24,7 @@ public class EnemyPlane {
 
     public EnemyPlane(int x, int type) {
         setType(type);
-        this.y=-GameView.screenHeight;
+        this.y = -GameView.screenHeight;
         setX(x);
     }
 
@@ -142,17 +145,20 @@ public class EnemyPlane {
     }
 
     public boolean contain(Bullet b, GameView gameView) {//判断子弹是否打中敌机
-        //根据子弹类型，修正子弹的碰撞检测位置
-        int bx=b.getX();
-        int by=b.getY();
-        int bw=b.getBitmap().getWidth();
-        int bh=b.getBitmap().getHeight();
-        if (b.getType()==ConstantUtil.BULLET_BLUE){
-             bx=bx-ConstantUtil.BULLET_SPAN;
-             by=by-ConstantUtil.BULLET_SPAN;
-             bw=bw+ConstantUtil.BULLET_SPAN*2;
-             bh=bh+ConstantUtil.BULLET_SPAN;
-        }
+
+        int bx = b.getX();
+        int by = b.getY();
+        int bw = b.getBitmap().getWidth();
+        int bh = b.getBitmap().getHeight();
+        /**
+         * 废弃的根据类型碰撞检测的计算方法
+         */
+//        if (b.getType()==ConstantUtil.BULLET_BLUE){
+//             bx=bx-ConstantUtil.BULLET_SPAN;
+//             by=by-ConstantUtil.BULLET_SPAN;
+//             bw=bw+ConstantUtil.BULLET_SPAN*2;
+//             bh=bh+ConstantUtil.BULLET_SPAN;
+//        }
         if (isContain(bx, by, bw, bh)) {
             switch (type) {
                 case ConstantUtil.ENEMY_TYPE2:
@@ -163,28 +169,21 @@ public class EnemyPlane {
                     break;
             }
             gameView.playSound(2, 0);//播放受到攻击音效
-            switch (b.getType()){
-                case ConstantUtil.BULLET_RED:
-                    this.life--;//自己的生命减1
-                    break;
-                case ConstantUtil.BULLET_BLUE:
-                    this.life=this.life-3;//自己的生命减3
-                    break;
-            }
-            if (getLife() <= 0) {//当生命小于0时
+            this.life--;//自己的生命减1
+            if (getLife() <= 0) {//当生命小于0时，向主线程发送得分信息
                 Message msg = gameView.activity.myHandler.obtainMessage();
                 switch (getType()) {
                     case ConstantUtil.ENEMY_TYPE1:
                         gameView.playSound(2, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE1_SCORE;
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE1_SCORE;
                         break;
                     case ConstantUtil.ENEMY_TYPE2:
                         gameView.playSound(3, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE2_SCORE;
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE2_SCORE;
                         break;
                     case ConstantUtil.ENEMY_TYPE3:
                         gameView.playSound(4, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE3_SCORE;
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE3_SCORE;
                         break;
                 }
                 gameView.activity.myHandler.sendMessage(msg);

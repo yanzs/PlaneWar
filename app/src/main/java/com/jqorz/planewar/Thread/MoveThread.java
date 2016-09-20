@@ -5,6 +5,9 @@ import com.jqorz.planewar.Entity.Bullet;
 import com.jqorz.planewar.Entity.ChangeBullet;
 import com.jqorz.planewar.Entity.EnemyPlane;
 import com.jqorz.planewar.Entity.GameView;
+import com.jqorz.planewar.Utils.ConstantUtil;
+
+import java.util.ArrayList;
 
 /**
  * 除了我方飞机外所有移动物的移动线程
@@ -13,6 +16,7 @@ import com.jqorz.planewar.Entity.GameView;
 public class MoveThread extends Thread {
     GameView gameView;
     private boolean flag = true;//循环标志位
+    private ArrayList<Bullet> deleteBullets = new ArrayList<>();
 
     public MoveThread(GameView gameView) {//构造器
         this.gameView = gameView;
@@ -26,20 +30,25 @@ public class MoveThread extends Thread {
         while (flag) {
 
             //子弹碰撞检测
-            for (Bullet b : gameView.mBullet) {
-                if (b.getY() < -b.getBitmap().getHeight()) {
-                    b.setStatus(false);
-                } else {
-                    for (EnemyPlane ep : gameView.mEnemy) {
-                        if (ep.getStatus() && b.getStatus() && ep.getBitmap() != null) {
-                            if (ep.contain(b, gameView)) {//打中敌机
-                                b.setStatus(false);
+            try {
+                for (Bullet b : gameView.mBullets) {
+                    if (b.getY() < -b.getBitmap().getHeight()) {
+                        deleteBullets.add(b);
+                    } else {
+                        for (EnemyPlane ep : gameView.mEnemy) {
+                            if (ep.getStatus() && ep.getBitmap() != null) {
+                                if (ep.contain(b, gameView)) {//打中敌机
+                                    deleteBullets.add(b);
+                                }
                             }
                         }
                     }
                 }
-            }
+                gameView.mBullets.removeAll(deleteBullets);
+                deleteBullets.clear();
+            } catch (Exception e) {
 
+            }
             //敌军飞机碰撞检测
             for (EnemyPlane ep : gameView.mEnemy) {
 
@@ -79,7 +88,7 @@ public class MoveThread extends Thread {
                 cb.setStatus(false);
                 cb.reset();
             } else if (cb.getStatus() && gameView.plane.getStatus() && gameView.plane.getBitmap() != null) {
-                if (gameView.plane.contain(cb,gameView)) {
+                if (gameView.plane.contain(cb)) {
                     cb.setStatus(false);
                     cb.reset();
                 }
@@ -87,6 +96,11 @@ public class MoveThread extends Thread {
 
             }
 
+
+        }
+        try {
+            Thread.sleep(ConstantUtil.MOVE_THREAD_SPAN);
+        } catch (InterruptedException e) {
 
         }
     }

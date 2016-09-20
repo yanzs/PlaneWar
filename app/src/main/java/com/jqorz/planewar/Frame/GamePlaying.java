@@ -22,18 +22,22 @@ import com.jqorz.planewar.Utils.ConstantUtil;
 public class GamePlaying extends Activity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener {
     GameView gameView;//GameView的引用
     SharedPreferences sp;
-    Boolean isPause = false;
+
+    Boolean isPause = false;//是否暂停
     private int score = 0;//玩家本局分数
     private int bombNum = 0;//玩家炸弹数量
     private boolean isSound = true;//是否播放声音
-    private TextView tv_BombNum, tv_Score;
+
     private long pauseTime = 0L;//记录暂停时间
     private long resumeTime = 0L;//记录恢复时间
+
+    private TextView tv_BombNum, tv_Score;
     private Switch swt_Sound, swt_Music;
     private ImageButton imgBtn_Pause;
     private LinearLayout lv_Bomb;
+
     private MediaPlayer mMediaPlayer;
-    private LinearLayout lv_switchers;
+
     public Handler myHandler = new Handler() {//用来更新UI线程中的控件
         public void handleMessage(Message msg) {
             if (msg.what == ConstantUtil.STATE_END) {//游戏失败，玩家飞机坠毁
@@ -62,6 +66,7 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
             }
         }
     };
+    private LinearLayout lv_switchers;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,7 +79,9 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
         getSetting();
         setSwitch();
         checkMusic();
+        checkCheat();
     }
+
 
     private void initMusic() {
         mMediaPlayer = MediaPlayer.create(this, R.raw.bgm);
@@ -85,7 +92,6 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
         getSetting();
         return isSound;
     }
-
 
 
     private void getSetting() {
@@ -107,7 +113,7 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
     }
 
     private void initView() {
-        lv_switchers= (LinearLayout) findViewById(R.id.lv_switchers);
+        lv_switchers = (LinearLayout) findViewById(R.id.lv_switchers);
         gameView = (GameView) findViewById(R.id.mSurfaceView);
         tv_BombNum = (TextView) findViewById(R.id.tv_BombNum);
         tv_Score = (TextView) findViewById(R.id.tv_Score);
@@ -182,7 +188,7 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
         isPause = true;
         imgBtn_Pause.setBackground(getResources().getDrawable(R.drawable.game_resume_nor));
         pauseTime = System.currentTimeMillis();
-        if (mMediaPlayer.isPlaying()){
+        if (mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
         }
         lv_switchers.setVisibility(View.VISIBLE);
@@ -206,15 +212,43 @@ public class GamePlaying extends Activity implements View.OnClickListener, Compo
     }
 
     private void checkMusic() {
-       boolean b = sp.getBoolean("swt_Music",true);
-        if (b&&!isPause){
-            if (!mMediaPlayer.isPlaying()){
+        boolean b = sp.getBoolean("swt_Music", true);
+        if (b && !isPause) {
+            if (!mMediaPlayer.isPlaying()) {
                 mMediaPlayer.start();
             }
-        }else {
-            if (mMediaPlayer.isPlaying()){
+        } else {
+            if (mMediaPlayer.isPlaying()) {
                 mMediaPlayer.pause();
             }
+        }
+    }
+
+    private void checkCheat() {
+        switch (ConstantUtil.CHEAT_CURRENT_STATE) {
+            case 0://正常状态,还原所有的改动
+                bombNum = 0;
+                String showText1 = "X" + bombNum;
+                tv_BombNum.setText(showText1);
+                ConstantUtil.SUPPLY_BULLET_INTERVAL_TIME = 25000;
+                ConstantUtil.ENEMY_TYPE1_SCORE = 100;
+                ConstantUtil.ENEMY_TYPE2_SCORE = 300;
+                ConstantUtil.ENEMY_TYPE3_SCORE = 600;
+                break;
+            case ConstantUtil.CHEAT_STATE_1://初始炸弹数为10
+                bombNum = 10;
+                String showText2 = "X" + bombNum;
+                tv_BombNum.setText(showText2);
+                break;
+            case ConstantUtil.CHEAT_STATE_2:
+                ConstantUtil.SUPPLY_BULLET_INTERVAL_TIME = 17000;//子弹补给间隔时间缩短
+                break;
+            case ConstantUtil.CHEAT_STATE_3://子弹补给间隔时间缩短，敌机分数增加100
+                ConstantUtil.SUPPLY_BULLET_INTERVAL_TIME = 20000;
+                ConstantUtil.ENEMY_TYPE1_SCORE = 200;
+                ConstantUtil.ENEMY_TYPE2_SCORE = 400;
+                ConstantUtil.ENEMY_TYPE3_SCORE = 700;
+                break;
         }
     }
 

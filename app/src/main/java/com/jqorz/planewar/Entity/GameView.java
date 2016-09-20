@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.media.SoundPool;
 import android.os.Message;
 import android.util.AttributeSet;
@@ -27,7 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * 主游戏界面
+ * 主游戏界面控制类
  */
 public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
@@ -56,7 +55,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public RunThread runThread;//飞机飞行动画的线程
     public ExplodeThread explodeThread;//爆炸换帧的线程
     public TutorialThread thread;//刷帧的线程
-    public int mSendId = 0; //初始化子弹ID
     public int mEnemyId = 0; //初始化敌军ID
     public Long mSendTime = 0L; //上一颗子弹发射的时间
     public Long mEnemyTime = 0L; //上一次敌军出现的时间
@@ -64,7 +62,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     public Long mDifficultyTime = 0L; //计算难度用的时间
     public Long mBombTime = 0L; //计算炸弹补给出现的时间
     public Long mChangeBulletTime = 0L; //计算子弹补给出现的时间
-    public Bullet mBullet[] = null;//子弹数组
+    public ArrayList<Bullet> mBullets = null;//子弹数组
     public EnemyPlane mEnemy[] = null;//敌军飞机数组
     GamePlaying activity;
     Bitmap background;//背景的大图元
@@ -91,21 +89,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.activity = (GamePlaying) context;
         this.setKeepScreenOn(true);//保持屏幕常亮
         this.setFocusableInTouchMode(false);//设置不允许按键
-        Display display = activity.getWindowManager().getDefaultDisplay();
+        Display display = activity.getWindowManager().getDefaultDisplay();//获取屏幕宽高
         screenHeight = display.getHeight();
         screenWidth = display.getWidth();
         initBitmap();
+        initSounds();
         initGameView();
-
-
-
 
     }
 
 
     public void initGameView() {
-
-        initSounds();
 
         getHolder().addCallback(this);//注册接口
 
@@ -115,10 +109,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         this.explodeThread = new ExplodeThread(this);//初始化爆炸线程
 
         plane = new Plane((screenWidth - bmps_heroPlane[0].getWidth()) / 2, screenHeight / 3 * 2 - bmps_heroPlane[0].getHeight() / 2);//初始化我方飞机
-        mBullet = new Bullet[ConstantUtil.BULLET_POOL_COUNT];
-        for (int i = 0; i < ConstantUtil.BULLET_POOL_COUNT; i++) {
-            mBullet[i] = new Bullet(0, 0);
-        }
+//        mBullet = new Bullet[ConstantUtil.BULLET_POOL_COUNT];
+        mBullets = new ArrayList<>();
+//        for (int i = 0; i < ConstantUtil.BULLET_POOL_COUNT; i++) {
+//            mBullet[i] = new Bullet(0, 0);
+//        }
         mEnemy = new EnemyPlane[ConstantUtil.ENEMY_POOL_COUNT];
         for (int i = 0; i < ConstantUtil.ENEMY_POOL_COUNT; i++) {
             mEnemy[i] = new EnemyPlane(0, ConstantUtil.ENEMY_TYPE1);
@@ -130,7 +125,6 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         changeBullet = new ChangeBullet(Map.getBullet());//取子弹补给
         bomb = new Bomb(Map.getBomb()); //取炸弹补给
     }
-
 
 
     private void initSounds() {
@@ -233,19 +227,19 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
             //绘制子弹及敌机
             if (now - mTime >= ConstantUtil.FIRST_ENEMY_TIME) {
-                drawEnemy(canvas,now);
+                drawEnemy(canvas, now);
                 if (plane.getStatus()) {
-                    drawBullets(canvas,now);
+                    drawBullets(canvas, now);
                 }
             }
             //绘制炸弹补给
-            drawBomb(canvas,now);
+            drawBomb(canvas, now);
 
             //绘制子弹补给
-            drawChangeBullet(canvas,now);
+            drawChangeBullet(canvas, now);
 
             //计算难度
-            addDifficulty(now);
+//            addDifficulty(now);
 
             //绘制爆炸
             try {
@@ -262,7 +256,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     }
 
-   private void drawChangeBullet(Canvas canvas, long now) {
+    private void drawChangeBullet(Canvas canvas, long now) {
         if (changeBullet.getStatus()) {
             changeBullet.move();
         }
@@ -279,7 +273,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
     }
 
-    private void drawBomb(Canvas canvas,long now) {
+    private void drawBomb(Canvas canvas, long now) {
         if (bomb.getStatus()) {
             bomb.move();
         }
@@ -304,7 +298,8 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 ConstantUtil.ENEMY_TIME = ConstantUtil.ENEMY_TIME_MIN;//否则就为最小时间
             }
             if (ConstantUtil.ENEMY_VELOCITY < ConstantUtil.ENEMY_VELOCITY_ADD_MAX) {//如果速度仍然小于最大速度
-                ConstantUtil.ENEMY_VELOCITY = ConstantUtil.ENEMY_VELOCITY + ConstantUtil.ENEMY_VELOCITY_ADD;//当前速度递增
+                ConstantUtil.ENEMY_VELOCITY = ConstantUtil.ENEMY_VELOCITY + ConstantUtil.
+                        ENEMY_VELOCITY_ADD;//当前速度递增
             } else {
                 ConstantUtil.ENEMY_VELOCITY = ConstantUtil.ENEMY_VELOCITY_ADD_MAX;//否则就为最大速度
             }
@@ -314,11 +309,11 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     //绘制敌人动画
-    private void drawEnemy(Canvas canvas,long now) {
+    private void drawEnemy(Canvas canvas, long now) {
 
         //移动敌军飞机
         for (EnemyPlane ep : mEnemy) {
-                ep.move();
+            ep.move();
         }
 
 
@@ -340,7 +335,7 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         //绘制状态正常的敌军飞机
-        for (EnemyPlane ep :mEnemy){
+        for (EnemyPlane ep : mEnemy) {
             if (ep.getStatus()) {
                 ep.draw(canvas);
             }
@@ -348,33 +343,45 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     }
 
-    private void drawBullets(Canvas canvas,long now) {
+    private void drawBullets(Canvas canvas, long now) {
 
 
-        // 移动子弹
-        for (Bullet b:mBullet){
-                b.move();
-        }
         //根据时间初始化未发射的子弹
-        if (mSendId < ConstantUtil.BULLET_POOL_COUNT) {
-            if (now - mSendTime >= ConstantUtil.BULLET_TIME) {
-                mBullet[mSendId].setX(plane.getX() + (int) ((bmps_heroPlane[0].getWidth() - bmp_bullet1.getWidth()) / 2.0));
-                mBullet[mSendId].setY(plane.getY() - ConstantUtil.BULLET_SPAN / 2);
-                mBullet[mSendId].setStatus(true);
-                mBullet[mSendId].setType(plane.getBulletType());
-                mSendTime = now;
-                mSendId++;
+        if (now - mSendTime >= ConstantUtil.BULLET_TIME) {
+            int x = plane.getX() + (int) ((bmps_heroPlane[0].getWidth() - bmp_bullet1.getWidth()) / 2.0);
+            int y = plane.getY() - ConstantUtil.BULLET_SPAN / 2;
+            if (plane.getBulletType() == ConstantUtil.BULLET_RED) {
+                Bullet b1 = new Bullet(x, y);
+                b1.setType(ConstantUtil.BULLET_RED);
+                mBullets.add(b1);
+            } else if (plane.getBulletType() == ConstantUtil.BULLET_BLUE) {
+                Bullet b1 = new Bullet(x, y - ConstantUtil.BULLET_SPAN);
+                b1.setType(ConstantUtil.BULLET_BLUE);
+                mBullets.add(b1);
+                Bullet b2 = new Bullet(x - ConstantUtil.BULLET_SPAN, y);
+                b2.setType(ConstantUtil.BULLET_BLUE);
+                mBullets.add(b2);
+                Bullet b3 = new Bullet(x + ConstantUtil.BULLET_SPAN, y);
+                b3.setType(ConstantUtil.BULLET_BLUE);
+                mBullets.add(b3);
             }
-        } else {
-            mSendId = 0;
+            mSendTime = now;
         }
 
-
-        //绘制正常的子弹
-        for (Bullet b:mBullet){
-            if (b.getStatus()) {
-               b.draw(canvas);
+        //移动子弹
+        try {
+            for (Bullet b : mBullets) {
+                b.move();
             }
+        } catch (Exception e) {
+        }
+        //绘制正常的子弹
+        try {
+            for (Bullet b : mBullets) {
+
+                b.draw(canvas);
+            }
+        } catch (Exception e) {
         }
 
     }
@@ -388,15 +395,15 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
                 switch (ep.getType()) {
                     case ConstantUtil.ENEMY_TYPE1:
                         playSound(2, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE1_SCORE;
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE1_SCORE;
                         break;
                     case ConstantUtil.ENEMY_TYPE2:
                         playSound(3, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE2_SCORE;
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE2_SCORE;
                         break;
                     case ConstantUtil.ENEMY_TYPE3:
-                       playSound(4, 0);
-                        msg.arg1=ConstantUtil.ENEMY_TYPE3_SCORE;
+                        playSound(4, 0);
+                        msg.arg1 = ConstantUtil.ENEMY_TYPE3_SCORE;
                         break;
                 }
                 activity.myHandler.sendMessage(msg);
@@ -433,17 +440,17 @@ public class GameView extends SurfaceView implements SurfaceHolder.Callback {
 
     public void surfaceCreated(SurfaceHolder holder) {//创建时启动相应进程
 
-            this.thread.setFlag(true);//启动刷帧线程
-            this.thread.start();
+        this.thread.setFlag(true);//启动刷帧线程
+        this.thread.start();
 
-            this.runThread.setFlag(true);//启动飞行动画效果线程
-            this.runThread.start();
+        this.runThread.setFlag(true);//启动飞行动画效果线程
+        this.runThread.start();
 
-            this.moveThread.setFlag(true);
-            moveThread.start();//启动所有移动物的移动线程
+        this.moveThread.setFlag(true);
+        moveThread.start();//启动所有移动物的移动线程
 
-            this.explodeThread.setFlag(true);
-            explodeThread.start();//启动爆炸效果线程
+        this.explodeThread.setFlag(true);
+        explodeThread.start();//启动爆炸效果线程
 
     }
 

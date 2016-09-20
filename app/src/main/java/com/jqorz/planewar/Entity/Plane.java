@@ -24,7 +24,6 @@ public class Plane {
         this.x = x;
         this.y = y;
         this.bitmaps = GameView.bmps_heroPlane;
-//        this.bmp_life = GameView.bmp_life;
 
     }
 
@@ -106,7 +105,7 @@ public class Plane {
     }
 
     //碰撞到子弹补给
-    public boolean contain(ChangeBullet cb, final GameView gameView) {
+    public boolean contain(ChangeBullet cb) {
 
         if (isContain(cb.getX(), cb.getY(), cb.getBitmap().getWidth(), cb.getBitmap().getHeight())) {//检测成功
             setBulletType(ConstantUtil.BULLET_BLUE);
